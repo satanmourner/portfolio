@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#020403">
+  <title>Sanaz Mahmoudi</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="experience" aria-live="polite">
+    <section class="intro" id="intro">
+      <p class="kicker">Interactive portfolio</p>
+      <h1>Find the stars</h1>
+      <p>Drag to rotate the cube, pinch or scroll to zoom, and move left, right, up or down with two fingers on mobile or right click on desktop. Tap the glowing stars to open my links.</p>
+      <button class="terminal-trigger" id="terminalTrigger" type="button">
+        <span class="terminal-prompt-label">satanmourner@portfolio:~$</span>open terminal<span class="terminal-caret"></span>
+       </button>
+    </section>
+
+    <div class="star-tooltip" id="starTooltip" aria-hidden="true">
+      <span class="star-tooltip-label" id="starTooltipLabel"></span>
+      <span class="star-tooltip-hint">Click to open</span>
+    </div>
+
+    <dialog class="star-dialog" id="starDialog">
+      <p class="kicker" id="dialogKicker">Star link</p>
+      <h2 id="dialogTitle">Link</h2>
+      <p class="dialog-description" id="dialogDescription"></p>
+      <a class="dialog-action" id="dialogAction" href="#" target="_blank" rel="noreferrer">Open link</a>
+      <button class="dialog-close" id="dialogClose" type="button">Close</button>
+    </dialog>
+
+    <dialog class="terminal-dialog" id="terminalDialog">
+      <div class="terminal-bar">
+        <span class="terminal-title">satanmourner@portfolio — shell</span>
+        <button class="terminal-close" id="terminalClose" type="button" aria-label="Close terminal">&#10005;</button>
+      </div>
+      <div class="terminal-output" id="terminalOutput" aria-live="polite"></div>
+      <form class="terminal-input-line" id="terminalForm">
+        <span class="terminal-prompt">satanmourner@portfolio:~$</span>
+        <input id="terminalInput" type="text" autocomplete="off" spellcheck="false" autocapitalize="off"
+          enterkeyhint="send" placeholder="type help and press enter" aria-label="Terminal input">
+      </form>
+    </dialog>
+  </main>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+.intro {
+  width: min(100%, 420px);
+  align-self: end;
+  transition:
+    opacity 240ms ease,
+    transform 240ms ease,
+    visibility 240ms ease;
+  color: rgba(234, 255, 241, 0.82);
+  text-shadow: 0 0 18px rgba(33, 245, 139, 0.45);
+}
+
+.intro.is-hidden {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.intro p:last-of-type {
+  max-width: 34ch;
+  margin-top: 16px;
+  color: rgba(234, 255, 241, 0.76);
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  line-height: 1.55;
+}
