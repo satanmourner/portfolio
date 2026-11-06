@@ -16,8 +16,45 @@ const TERMINAL_BANNER = [
 let terminalHistory = [];
 let terminalHistoryIndex = 0;
 
+function isTextEntry(target) {
+  if (!(target instanceof Element)) return false;
+  return Boolean(
+    target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]')
+  );
+}
+
+function typeIntoTerminal(key) {
+  terminalInput.value += key;
+  const end = terminalInput.value.length;
+  terminalInput.setSelectionRange(end, end);
+}
+
+// Typing anywhere on the page opens the terminal on desktop, so users can
+// start a command without hunting for the trigger first.
+function handleGlobalTyping(event) {
+  if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing || event.repeat) return;
+  if (event.key.length !== 1 || event.key === ' ') return;
+  if (isTextEntry(event.target)) return;
+
+  if (terminalDialog.open) {
+    if (document.activeElement === terminalInput) return;
+    event.preventDefault();
+    terminalInput.focus();
+    typeIntoTerminal(event.key);
+    return;
+  }
+
+  // Don't steal keystrokes from another open dialog, such as a star link.
+  if (document.querySelector('dialog[open]')) return;
+
+  event.preventDefault();
+  openTerminal();
+  typeIntoTerminal(event.key);
+}
+
 export function initTerminal() {
   terminalTrigger.addEventListener('click', openTerminal);
+  window.addEventListener('keydown', handleGlobalTyping);
   terminalClose.addEventListener('click', closeTerminal);
 
   terminalForm.addEventListener('submit', (event) => {

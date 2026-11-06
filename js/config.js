@@ -20,6 +20,10 @@ export const STAR = {
   hoverScale: 1.45,
   appearNear: 20,
   appearFar: 34,
+  pickMinAppear: 0.15,
+  pickRadiusWorld: 2.8,
+  pickRadiusPx: 28,
+  pickRadiusMaxPx: 110,
 };
 
 export const ROTATION = {

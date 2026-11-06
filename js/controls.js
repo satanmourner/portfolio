@@ -4,13 +4,12 @@ import { state, isDialogOpen } from './state.js';
 import { pickStar } from './stars.js';
 
 export function initControls({ camera, renderer, onStarTap }) {
-  const { controls, pan, pinchState, activePointers, pointer, pointerScreen } = state;
+  const { controls, pan, pinchState, activePointers, pointerScreen } = state;
 
   function setPointerFromEvent(event) {
     pointerScreen.x = event.clientX;
     pointerScreen.y = event.clientY;
-    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-    pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    state.pointerOnCanvas = true;
   }
 
   function worldPerPixel() {
@@ -139,8 +138,11 @@ export function initControls({ camera, renderer, onStarTap }) {
     if (!wasDragging) return;
 
     controls.dragging = false;
+    if (event.target !== renderer.domElement) {
+      state.pointerOnCanvas = false;
+      return;
+    }
     setPointerFromEvent(event);
-    if (event.target !== renderer.domElement) return;
     const star = pickStar(camera);
     if (!controls.moved && star) onStarTap(star);
   });
@@ -155,8 +157,7 @@ export function initControls({ camera, renderer, onStarTap }) {
   window.addEventListener('pointermove', (event) => {
     if (activePointers.size > 0 || controls.panning) return;
     if (event.target !== renderer.domElement) {
-      pointer.x = -2;
-      pointer.y = -2;
+      state.pointerOnCanvas = false;
       return;
     }
     setPointerFromEvent(event);

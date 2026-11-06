@@ -1,9 +1,8 @@
-import * as THREE from '../three.module.js';
 import { CAMERA, PAN } from './config.js';
 
 export const state = {
-  pointer: new THREE.Vector2(),
   pointerScreen: { x: 0, y: 0 },
+  pointerOnCanvas: false,
   hoveredStar: null,
   controls: {
     dragging: false,

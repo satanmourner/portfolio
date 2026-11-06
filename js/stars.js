@@ -3,7 +3,10 @@ import { CAMERA, STAR, STAR_LAYOUT } from './config.js';
 import { getStarTexture } from './star-texture.js';
 import { state, isDialogOpen } from './state.js';
 
-const raycaster = new THREE.Raycaster();
+const _worldPosition = new THREE.Vector3();
+const _cameraSpace = new THREE.Vector3();
+const _projected = new THREE.Vector3();
+
 let starGroups = [];
 
 export function generateStarPositions(count) {
@@ -41,7 +44,6 @@ export function createStarField(scene, starsData) {
     group.position.copy(positions[index]);
     group.userData.star = star;
     group.userData.core = group.children[0];
-    group.userData.glow = group.children[1];
     group.userData.appear = 0;
     group.userData.twinkle = Math.random() * Math.PI * 2;
     scene.add(group);
@@ -52,17 +54,51 @@ export function createStarField(scene, starsData) {
 }
 
 export function pickStar(camera) {
-  if (isDialogOpen()) return null;
+  if (isDialogOpen() || !state.pointerOnCanvas) return null;
 
-  raycaster.setFromCamera(state.pointer, camera);
-  const hits = raycaster.intersectObjects(
-    starGroups.map((group) => group.userData.glow),
-    false
-  );
+  // Screen-space picking keeps stars clickable at every camera angle. Raycasting
+  // an invisible sphere failed when the camera moved inside it (back-face cull).
+  camera.updateMatrixWorld();
 
-  if (hits.length === 0) return null;
-  return starGroups.find((group) => group.userData.glow === hits[0].object
-    && group.userData.appear > 0.5) ?? null;
+  const pointerX = state.pointerScreen.x;
+  const pointerY = state.pointerScreen.y;
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const pixelScale = viewportHeight
+    / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+
+  let closestStar = null;
+  let closestDistance = Infinity;
+
+  for (const star of starGroups) {
+    if (star.userData.appear <= STAR.pickMinAppear) continue;
+
+    star.getWorldPosition(_worldPosition);
+    _cameraSpace.copy(_worldPosition).applyMatrix4(camera.matrixWorldInverse);
+
+    // Skip stars that are behind the camera or inside the near plane.
+    if (_cameraSpace.z >= -camera.near) continue;
+
+    _projected.copy(_worldPosition).project(camera);
+
+    const screenX = (_projected.x * 0.5 + 0.5) * viewportWidth;
+    const screenY = (-_projected.y * 0.5 + 0.5) * viewportHeight;
+    const distance = Math.hypot(screenX - pointerX, screenY - pointerY);
+
+    const depth = Math.max(-_cameraSpace.z, camera.near);
+    const radius = THREE.MathUtils.clamp(
+      (STAR.pickRadiusWorld * star.scale.x * pixelScale) / depth,
+      STAR.pickRadiusPx,
+      STAR.pickRadiusMaxPx
+    );
+
+    if (distance <= radius && distance < closestDistance) {
+      closestStar = star;
+      closestDistance = distance;
+    }
+  }
+
+  return closestStar;
 }
 
 export function updateStars(camera, elapsed) {
@@ -98,13 +134,7 @@ function createStar() {
   const core = new THREE.Sprite(coreMaterial);
   core.scale.set(4.2, 4.2, 1);
 
-  const glow = new THREE.Mesh(
-    new THREE.SphereGeometry(3.8, 16, 16),
-    new THREE.MeshBasicMaterial({ visible: false })
-  );
-
   group.add(core);
-  group.add(glow);
   return group;
 }
 
@@ -151,12 +181,5 @@ function updateStar(camera, star, elapsed) {
     (0.55 + pulse * 0.45) * star.userData.appear,
     0,
     1
-  );
-  star.userData.glow.material.opacity = THREE.MathUtils.clamp(
-    (0.18 + (1 - zoomProgress) * 0.5 + pulse * 0.12 + (state.hoveredStar === star ? 0.35 : 0))
-      * star.userData.appear
-      + 0.12 * star.userData.appear * (1 - star.userData.appear),
-    0,
-    0.95
   );
 }
